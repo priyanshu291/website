@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Album</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f9fc;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .home-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 28px;
+            color: #333;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input[type="file"] {
+            padding: 6px;
+        }
+
+        button {
+            padding: 8px 18px;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        button.upload {
+            background-color: #007BFF;
+        }
+
+        button.upload:hover {
+            background-color: #0056b3;
+        }
+
+        button.remove {
+            background-color: #dc3545;
+            margin-top: 6px;
+        }
+
+        button.remove:hover {
+            background-color: #c82333;
+        }
+
+        h3 {
+            font-size: 22px;
+            color: #444;
+            margin-bottom: 20px;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .photo-item {
+            text-align: center;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        /* Slideshow Modal */
+        #slideshowModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #slideshowModal img {
+            max-height: 80%;
+            max-width: 80%;
+            border-radius: 10px;
+        }
+
+        #slideshowModal span,
+        #slideshowModal button.nav-btn {
+            position: absolute;
+            font-size: 30px;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        #slideshowModal span.close {
+            top: 20px;
+            right: 30px;
+        }
+
+        #slideshowModal button.left {
+            left: 20px;
+        }
+
+        #slideshowModal button.right {
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Home Button -->
+    <a href="/" class="home-button">⬅ Home</a>
+
+    <!-- Album Title -->
+    <h2 th:text="${type} + ' Album'"></h2>
+
+    <!-- Upload Form -->
+    <form action="/album/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <input type="hidden" name="type" th:value="${type}">
+        <button type="submit" class="upload">Upload Photo</button>
+    </form>
+
+    <!-- Photo Gallery -->
+    <h3>Uploaded Photos</h3>
+    <div class="photo-grid">
+        <div class="photo-item" th:each="photo, iterStat : ${photos}">
+            <img th:src="@{'/images/' + ${photo.fileName}}"
+                 th:attr="data-index=${iterStat.index}"
+                 onclick="openSlideshow(this)">
+            <form action="/album/delete" method="post">
+                <input type="hidden" name="fileName" th:value="${photo.fileName}">
+                <input type="hidden" name="type" th:value="${type}">
+                <button type="submit" class="remove">Remove</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Slideshow Modal -->
+<div id="slideshowModal">
+    <span class="close" onclick="closeSlideshow()">×</span>
+    <button class="nav-btn left" onclick="changeSlide(-1)">❮</button>
+    <img id="slideshowImage" src="">
+    <button class="nav-btn right" onclick="changeSlide(1)">❯</button>
+</div>
+
+<script>
+    let currentSlideIndex = 0;
+    let imageElements = [];
+    let autoplayInterval;
+
+    function openSlideshow(clickedImg) {
+        imageElements = Array.from(document.querySelectorAll(".photo-item img"));
+        currentSlideIndex = parseInt(clickedImg.getAttribute("data-index"));
+        document.getElementById("slideshowImage").src = clickedImg.src;
+        document.getElementById("slideshowModal").style.display = "flex";
+        startAutoplay();
+    }
+
+    function closeSlideshow() {
+        document.getElementById("slideshowModal").style.display = "none";
+        stopAutoplay();
+    }
+
+    function changeSlide(step) {
+        if (!imageElements.length) return;
+        currentSlideIndex += step;
+        if (currentSlideIndex < 0) currentSlideIndex = imageElements.length - 1;
+        if (currentSlideIndex >= imageElements.length) currentSlideIndex = 0;
+        document.getElementById("slideshowImage").src = imageElements[currentSlideIndex].src;
+    }
+
+    function startAutoplay() {
+        stopAutoplay(); // clear existing interval
+        autoplayInterval = setInterval(() => {
+            changeSlide(1);
+        }, 3000); // change every 3 seconds
+    }
+
+    function stopAutoplay() {
+        if (autoplayInterval) {
+            clearInterval(autoplayInterval);
+            autoplayInterval = null;
+        }
+    }
+</script>
+
+</body>
+</html>

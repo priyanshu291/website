@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kajal Weds Rahul</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('/wedding-banner.jpeg'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 40px 60px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        select {
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            background-color: #fff;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:hover {
+            background-color: #f1f1f1;
+        }
+
+        option:disabled {
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay">
+        <h1>Kajal Weds Rahul</h1>
+
+        <div class="dropdown">
+            <select onchange="location = this.value;">
+                <option selected disabled>Select an Option</option>
+                <option value="/album/wedding">Wedding Album</option>
+                <option value="/album/engagement">Engagement Album</option>
+                <option value="/gift">Gift Entry</option>
+                <option value="/guestlist">Guest List</option>
+            </select>
+        </div>
+    </div>
+
+</body>
+</html>

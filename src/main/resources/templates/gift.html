@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gift Entry</title>
+    <style>
+        body {
+            background-color: #e0f0ff;
+            font-family: Arial, sans-serif;
+            color: #003366;
+            padding: 20px;
+        }
+
+        input, button {
+            margin: 5px 0;
+            padding: 8px;
+            width: 250px;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        th, td {
+            border: 1px solid #005fa3;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007acc;
+            color: white;
+        }
+
+        .remove-btn {
+            background-color: #cc0000;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<a href="/" style="
+    display: inline-block;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    background-color: #003366;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+">
+    ⬅ Home
+</a>
+
+<h2>Gift Entry Form</h2>
+
+<form action="/gift" method="post" th:object="${gift}" onsubmit="return validateContact()">
+    <input th:field="*{guestName}" placeholder="Guest Name" required /><br/>
+
+    <input th:field="*{giftItem}" placeholder="Gift Item" required /><br/>
+
+    <input id="contact" th:field="*{contact}" placeholder="Contact (10 digits)" required /><br/>
+    <div id="contactError" class="error"></div>
+
+    <input th:field="*{amount}" type="number" step="100" placeholder="Amount" required/><br/>
+
+    <button type="submit">Submit</button>
+</form>
+
+<h3>Saved Gifts:</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Guest Name</th>
+            <th>Gift Item</th>
+            <th>Contact</th>
+            <th>Amount</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="g : ${gifts}">
+            <td th:text="${g.guestName}">Guest</td>
+            <td th:text="${g.giftItem}">Item</td>
+            <td th:text="${g.contact}">Contact</td>
+            <td th:text="${g.amount}">Amount</td>
+            <td>
+                <a th:href="@{'/gift/delete/' + ${g.id}}">
+                    <button class="remove-btn">Remove</button>
+                </a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    function validateContact() {
+        const contact = document.getElementById("contact").value.trim();
+        const errorDiv = document.getElementById("contactError");
+        errorDiv.innerText = "";
+
+        const contactPattern = /^\d{10}$/;
+
+        if (!contactPattern.test(contact)) {
+            errorDiv.innerText = "Please enter a valid 10-digit contact number.";
+            return false;
+        }
+
+        return true;
+    }
+</script>
+
+</body>
+</html>

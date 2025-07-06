@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Guest List</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 30px;
+            background-color: #e6f0ff;
+        }
+
+        h2, h3 {
+            color: #0a3d62;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .form-column {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #b3cde0;
+            border-radius: 5px;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #0a3d62;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #074173;
+        }
+
+        ul {
+            margin-top: 20px;
+            padding: 0;
+            list-style-type: none;
+        }
+
+        li {
+            background-color: #ffffff;
+            margin-bottom: 12px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
+<a href="/" style="display: inline-block; padding: 10px 20px; margin-bottom: 20px;
+   background-color: #0a3d62; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+    ⬅ Home
+</a>
+
+<h2>Guest List Form</h2>
+
+<form id="guestForm" method="post" th:action="@{/guestlist}" th:object="${guest}" onsubmit="return validateForm()">
+    <div class="form-column">
+        <input id="name" th:field="*{name}" placeholder="Guest Name" required />
+        <div id="nameError" class="error"></div>
+
+        <input id="contact" th:field="*{contact}" placeholder="Contact" required />
+        <div id="contactError" class="error"></div>
+
+        <input id="email" th:field="*{email}" type="email" placeholder="Email" required />
+        <div id="emailError" class="error"></div>
+
+        <select id="cast" th:field="*{cast}" required>
+            <option value="">Select Cast</option>
+        </select>
+        <div id="castError" class="error"></div>
+
+        <select id="subcast" th:field="*{subcast}" required>
+            <option value="">Select Sub-Cast</option>
+        </select>
+        <div id="subcastError" class="error"></div>
+    </div>
+
+     <div class="form-column">
+        <select id="country" th:field="*{country}" required>
+            <option value="">Select Country</option>
+        </select>
+        <div id="countryError" class="error"></div>
+
+        <select id="state" th:field="*{state}" required>
+            <option value="">Select State</option>
+        </select>
+        <div id="stateError" class="error"></div>
+
+        <select id="city" th:field="*{city}" required>
+            <option value="">Select City</option>
+        </select>
+        <div id="cityError" class="error"></div>
+
+        <button type="submit">Save Guest</button>
+    </div>
+</form>
+
+<h3>Saved Guests:</h3>
+<ul>
+    <li th:each="g : ${guests}">
+        <span th:text="${g.name} + ' - ' + ${g.contact} + ' - ' + ${g.email} + ' - ' +
+                       ${g.country} + ', ' + ${g.state} + ', ' + ${g.city} + ' - ' +
+                       ${g.cast} + ', ' + ${g.subcast}"></span>
+        <form th:action="@{'/guestlist/delete/' + ${g.id}}" method="post" style="margin: 0;">
+            <button type="submit" class="delete-btn">Remove</button>
+        </form>
+    </li>
+</ul>
+
+<script>
+    const locationData = {
+        "India": {
+            "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
+            "Bihar": ["Patna", "Gaya", "Bhagalpur"],
+            "Odisha": ["Bhubaneswar", "Cuttack", "Puri"]
+        },
+        "USA": {
+            "California": ["Los Angeles", "San Francisco", "San Diego"],
+            "Texas": ["Houston", "Austin", "Dallas"]
+        }
+    };
+
+    const castData = {
+        "General": ["Brahmin", "Rajput", "Kayastha"],
+        "OBC": ["Yadav", "Kurmi", "Kushwaha"],
+        "SC": ["Paswan", "Chamar", "Valmiki"],
+        "ST": ["Gond", "Santal", "Oraon"]
+    };
+
+    window.onload = function () {
+        const countrySel = document.getElementById("country");
+        const stateSel = document.getElementById("state");
+        const citySel = document.getElementById("city");
+
+        const castSel = document.getElementById("cast");
+        const subcastSel = document.getElementById("subcast");
+
+        for (const country in locationData) {
+            let option = document.createElement("option");
+            option.value = option.text = country;
+            countrySel.add(option);
+        }
+
+        countrySel.onchange = function () {
+            stateSel.length = 1;
+            citySel.length = 1;
+            if (!this.value) return;
+            for (const state in locationData[this.value]) {
+                let option = document.createElement("option");
+                option.value = option.text = state;
+                stateSel.add(option);
+            }
+        };
+
+        stateSel.onchange = function () {
+            citySel.length = 1;
+            const selectedCountry = countrySel.value;
+            const selectedState = this.value;
+            if (!selectedCountry || !selectedState) return;
+            const cities = locationData[selectedCountry][selectedState];
+            cities.forEach(city => {
+                let option = document.createElement("option");
+                option.value = option.text = city;
+                citySel.add(option);
+            });
+        };
+
+        for (const cast in castData) {
+            let option = document.createElement("option");
+            option.value = option.text = cast;
+            castSel.add(option);
+        }
+
+        castSel.onchange = function () {
+            subcastSel.length = 1;
+            if (!this.value) return;
+            castData[this.value].forEach(sc => {
+                let option = document.createElement("option");
+                option.value = option.text = sc;
+                subcastSel.add(option);
+            });
+        };
+    };
+
+    function validateForm() {
+        let valid = true;
+
+        const fields = [
+            "name", "contact", "email", "country", "state",
+            "city", "cast", "subcast"
+        ];
+
+        fields.forEach(id => {
+            document.getElementById(id + "Error").innerText = "";
+        });
+
+        const name = document.getElementById("name").value.trim();
+        const contact = document.getElementById("contact").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const country = document.getElementById("country").value;
+        const state = document.getElementById("state").value;
+        const city = document.getElementById("city").value;
+        const cast = document.getElementById("cast").value;
+        const subcast = document.getElementById("subcast").value;
+
+        const contactPattern = /^\d{10}$/;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!name) {
+            document.getElementById("nameError").innerText = "Name is required.";
+            valid = false;
+        }
+
+        if (!contactPattern.test(contact)) {
+            document.getElementById("contactError").innerText = "Contact must be exactly 10 digits.";
+            valid = false;
+        }
+
+        if (!emailPattern.test(email)) {
+            document.getElementById("emailError").innerText = "Enter a valid email address.";
+            valid = false;
+        }
+
+        if (!country) {
+            document.getElementById("countryError").innerText = "Select a country.";
+            valid = false;
+        }
+
+        if (!state) {
+            document.getElementById("stateError").innerText = "Select a state.";
+            valid = false;
+        }
+
+        if (!city) {
+            document.getElementById("cityError").innerText = "Select a city.";
+            valid = false;
+        }
+
+        if (!cast) {
+            document.getElementById("castError").innerText = "Select a cast.";
+            valid = false;
+        }
+
+        if (!subcast) {
+            document.getElementById("subcastError").innerText = "Select a sub-cast.";
+            valid = false;
+        }
+
+        return valid;
+    }
+</script>
+
+</body>
+</html>
